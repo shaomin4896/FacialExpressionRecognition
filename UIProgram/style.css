@@ -1,0 +1,13 @@
+
+QGroupBox {
+    border: 2px solid gray;
+    }
+
+QPushButton{color:black}
+QPushButton{background-color:rgb(198,224,205)}
+QPushButton:hover{color:red}
+QPushButton{border-radius:6px}
+QPushButton:pressed{background-color:rgb(180,180,180);border: None;}
+
+
+#MainWindow{border-image:url(UIProgram/ui_imgs/bgs/bg1.jpg)}
