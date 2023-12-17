@@ -10,6 +10,7 @@ CSDN博客:https://blog.csdn.net/qq_42589613?type=blog
 from PyQt5.QtWidgets import QApplication , QMainWindow, QFileDialog
 import sys
 import os
+import datetime
 sys.path.append('UIProgram')
 from UIProgram.UiMain import Ui_MainWindow
 import sys
@@ -20,6 +21,10 @@ import Config
 from PyQt5.QtGui import QPixmap
 from UIProgram.QssLoader import QSSLoader
 from DenseNet121 import *
+
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
 
 
 class MainWindow(QMainWindow):
@@ -67,6 +72,13 @@ class MainWindow(QMainWindow):
         self.ui.CapBtn.clicked.connect(self.camera_show)
         self.ui.exitBtn.clicked.connect(QCoreApplication.quit)
 
+    def save_punch_record_to_firebase(self, record: dict) -> None:
+        cred = credentials.Certificate("nchu7716-firebase-adminsdk-ko2gm-91ede7329f.json")
+        firebase_admin.initialize_app(cred)
+        db = firestore.client()
+        doc_ref = db.collection("records")
+        doc_ref.add(record)
+    
     def open_img(self):
         if self.cap:
             self.video_stop()
@@ -87,6 +99,7 @@ class MainWindow(QMainWindow):
         face_cvimg, faces, locations = face_detect(self.cv_img)
         if faces is not None:
             for i in range(len(faces)):
+                face_infomation = face_recognize(face_cvimg)
                 top, right, bottom, left = locations[i]
                 face = cv2.cvtColor(faces[i], cv2.COLOR_BGR2GRAY)
                 face = cv2.resize(face, (48, 48))
@@ -98,7 +111,23 @@ class MainWindow(QMainWindow):
                 face_cvimg = cv2.putText(face_cvimg, label, (left, top-10), cv2.FONT_ITALIC, 0.8, (0, 0, 250), 2,
                                     cv2.LINE_AA)
                 # print('人物表情{}：'.format(i + 1) + self.labelchinese[num])
-                self.ui.resLb.setText(self.labeldict[num] + '--'+ self.labelchinese[num])
+                self.ui.resLb.setText('查無此員工')
+                if face_infomation is not None:
+                    emp_id = face_infomation["emp_id"]
+                    emp_name = face_infomation["emp_name"]
+                    emp_dept = face_infomation["emp_dept"]
+                    emotion = label
+                    punch_time = datetime.datetime.now()
+                    msg = f"部門：{emp_dept}\n員編：{emp_id}\n姓名：{emp_name}\n{punch_time.strftime('%m/%d %H:%M:%S')} 打卡上班！\n表情：{emotion}"
+                    self.ui.resLb.setText(msg)
+                    self.save_punch_record_to_firebase({
+                        "emp_id": emp_id,
+                        "emp_name": emp_name,
+                        "emp_dept": emp_dept,
+                        "emotion": emotion,
+                        "punch_time": punch_time
+                    })
+                # self.ui.resLb.setText(self.labeldict[num] + '--'+ self.labelchinese[num])
                 icon_name = self.labeldict[num] + '.png'
                 icon_path = os.path.join('UIProgram/ui_imgs', icon_name)
                 pix = QPixmap(icon_path)
@@ -139,6 +168,7 @@ class MainWindow(QMainWindow):
             face_cvimg, faces, locations = face_detect(image)
             if faces is not None:
                 for i in range(len(faces)):
+                    face_infomation = face_recognize(face_cvimg)
                     top, right, bottom, left = locations[i]
                     face = cv2.cvtColor(faces[i], cv2.COLOR_BGR2GRAY)
                     face = cv2.resize(face, (48, 48))
@@ -148,7 +178,23 @@ class MainWindow(QMainWindow):
                     label = self.labeldict[num]
                     face_cvimg = cv2.putText(face_cvimg, label, (left, top-10), cv2.FONT_ITALIC, 0.8, (0, 0, 250), 2,
                                              cv2.LINE_AA)
-                    self.ui.resLb.setText(self.labeldict[num] + '--'+ self.labelchinese[num])
+                    self.ui.resLb.setText('查無此員工')
+                    if face_infomation is not None:
+                        emp_id = face_infomation["emp_id"]
+                        emp_name = face_infomation["emp_name"]
+                        emp_dept = face_infomation["emp_dept"]
+                        emotion = label
+                        punch_time = datetime.datetime.now()
+                        msg = f"部門：{emp_dept}\n員編：{emp_id}\n姓名：{emp_name}\n{punch_time.strftime('%m/%d %H:%M:%S')} 打卡上班！\n表情：{emotion}"
+                        self.ui.resLb.setText(msg)
+                        self.save_punch_record_to_firebase({
+                            "emp_id": emp_id,
+                            "emp_name": emp_name,
+                            "emp_dept": emp_dept,
+                            "emotion": emotion,
+                            "punch_time": punch_time
+                        })
+                    # self.ui.resLb.setText(self.labeldict[num] + '--'+ self.labelchinese[num])
                     icon_name = self.labeldict[num] + '.png'
                     icon_path = os.path.join('UIProgram/ui_imgs', icon_name)
                     pix = QPixmap(icon_path)
