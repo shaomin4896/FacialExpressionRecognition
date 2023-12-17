@@ -1,3 +1,4 @@
+import os
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
@@ -187,3 +188,41 @@ def face_replace(image, location, label, module=1):
                 image[top+y, left+x] = face[y, x]
     return image
 
+def init_face_repos(dir: str="images") -> None:
+    face_encodings = []
+    face_infomations = []
+
+    for root, _, files in os.walk(dir):
+        for file in files:
+            file_path = os.path.join(root, file)
+            emp_params = file.split(".")[0].split("_")
+            if len(emp_params) != 3:
+                continue
+            emp_id, emp_name, emp_dept = emp_params
+            image = face_recognition.load_image_file(file_path)
+            encoding = face_recognition.face_encodings(image)[0]
+            face_encodings.append(encoding)
+            face_infomations.append({
+                "emp_id": emp_id,
+                "emp_name": emp_name,
+                "emp_dept": emp_dept
+            })
+    return face_encodings, face_infomations
+        
+
+def face_recognize(image):
+    known_face_encodings, face_infomations = init_face_repos("images")
+    if len(face_recognition.face_encodings(image)) == 0:
+        return
+    face_encoding = face_recognition.face_encodings(image)[0]
+
+    matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+    face_infomation = None
+
+    # Or instead, use the known face with the smallest distance to the new face
+    face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+    best_match_index = np.argmin(face_distances)
+    if matches[best_match_index]:
+        face_infomation = face_infomations[best_match_index]
+
+    return face_infomation
