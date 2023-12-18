@@ -209,9 +209,9 @@ def init_face_repos(dir: str="images") -> None:
             })
     return face_encodings, face_infomations
         
-
+known_face_encodings, face_infomations = init_face_repos("images")
 def face_recognize(image):
-    known_face_encodings, face_infomations = init_face_repos("images")
+    
     if len(face_recognition.face_encodings(image)) == 0:
         return
     face_encoding = face_recognition.face_encodings(image)[0]

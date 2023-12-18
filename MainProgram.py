@@ -38,6 +38,9 @@ class MainWindow(QMainWindow):
         style_file = 'UIProgram/style.css'
         qssStyleSheet = QSSLoader.read_qss_file(style_file)
         self.setStyleSheet(qssStyleSheet)
+        self.attended = set()
+        cred = credentials.Certificate("nchu7716-firebase-adminsdk-ko2gm-91ede7329f.json")
+        firebase_admin.initialize_app(cred)
 
     def initMain(self):
         # 加载模型
@@ -73,8 +76,7 @@ class MainWindow(QMainWindow):
         self.ui.exitBtn.clicked.connect(QCoreApplication.quit)
 
     def save_punch_record_to_firebase(self, record: dict) -> None:
-        cred = credentials.Certificate("nchu7716-firebase-adminsdk-ko2gm-91ede7329f.json")
-        firebase_admin.initialize_app(cred)
+
         db = firestore.client()
         doc_ref = db.collection("records")
         doc_ref.add(record)
@@ -185,15 +187,18 @@ class MainWindow(QMainWindow):
                         emp_dept = face_infomation["emp_dept"]
                         emotion = label
                         punch_time = datetime.datetime.now()
-                        msg = f"部門：{emp_dept}\n員編：{emp_id}\n姓名：{emp_name}\n{punch_time.strftime('%m/%d %H:%M:%S')} 打卡上班！\n表情：{emotion}"
-                        self.ui.resLb.setText(msg)
-                        self.save_punch_record_to_firebase({
+                        if emp_name not in self.attended:
+                            self.attended.add(emp_name)
+                            self.save_punch_record_to_firebase({
                             "emp_id": emp_id,
                             "emp_name": emp_name,
                             "emp_dept": emp_dept,
                             "emotion": emotion,
                             "punch_time": punch_time
-                        })
+                            })
+                        msg = f"部門：{emp_dept}\n員編：{emp_id}\n姓名：{emp_name}\n{punch_time.strftime('%m/%d %H:%M:%S')} 打卡上班！\n表情：{emotion}"
+                        self.ui.resLb.setText(msg)
+                        
                     # self.ui.resLb.setText(self.labeldict[num] + '--'+ self.labelchinese[num])
                     icon_name = self.labeldict[num] + '.png'
                     icon_path = os.path.join('UIProgram/ui_imgs', icon_name)
