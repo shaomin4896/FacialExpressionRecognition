@@ -10,4 +10,7 @@ QPushButton{border-radius:6px}
 QPushButton:pressed{background-color:rgb(180,180,180);border: None;}
 
 
-#MainWindow{border-image:url(UIProgram/ui_imgs/bgs/bg1.jpg)}
+#MainWindow{
+    background-color: white;
+    /* border-image:url(UIProgram/ui_imgs/bgs/bg1.jpg) */
+}
