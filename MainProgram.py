@@ -241,7 +241,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = MainWindow()
     win.show()
-    win.ui.PicBtn.click()
-    # win.ui.CapBtn.click()
+    win.ui.CapBtn.click()
     sys.exit(app.exec_())
 
