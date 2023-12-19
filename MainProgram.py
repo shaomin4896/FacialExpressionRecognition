@@ -1,11 +1,3 @@
-"""
-基于深度学习的人脸表情识别系统
-作者：阿旭
-公众号：阿旭算法与机器学习
-公众号简介：已分享大量机器学习与深度学习实战案例，欢迎关注--专注于python、机器学习与人工智能相关技术分享。
-CSDN博客:https://blog.csdn.net/qq_42589613?type=blog
-"""
-
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QApplication , QMainWindow, QFileDialog
 import sys
@@ -34,7 +26,6 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         self.initMain()
         self.signalconnect()
-        # 加载css渲染效果
         style_file = 'UIProgram/style.css'
         qssStyleSheet = QSSLoader.read_qss_file(style_file)
         self.setStyleSheet(qssStyleSheet)
@@ -43,9 +34,8 @@ class MainWindow(QMainWindow):
         firebase_admin.initialize_app(cred)
 
     def initMain(self):
-        # 加载模型
         self.labeldict = {0: 'Angry', 1: 'Disgust', 2: 'Fear', 3: 'Happy', 4: 'Sad', 5: 'Surprised', 6: 'Normal'}
-        self.labelchinese = {0: '生气', 1: '厌恶', 2: '害怕', 3: '高兴', 4: '伤心', 5: '惊讶', 6: '平淡'}
+        self.labelchinese = {0: '生氣', 1: '厭惡', 2: '害怕', 3: '高興', 4: '悲傷', 5: '驚訝', 6: '平淡'}
         inputs = keras.Input(shape=(48, 48, 1), batch_size=64)
         x = create_dense_net(7, inputs, include_top=True, depth=121, nb_dense_block=4, growth_rate=16, nb_filter=-1,
                              nb_layers_per_block=[6, 12, 32, 32], bottleneck=True, reduction=0.5, dropout_rate=0.2,
@@ -63,11 +53,7 @@ class MainWindow(QMainWindow):
         self.is_camera_open = False
         self.cap = None
 
-        # 更新视频图像
         self.timer_camera = QTimer()
-
-        # 设置主页背景图片border-image: url(:/icons/ui_imgs/icons/camera.png)
-        # self.setStyleSheet("#MainWindow{background-image:url(:/bgs/ui_imgs/bg3.jpg)}")
 
     def signalconnect(self):
         self.ui.PicBtn.clicked.connect(self.open_img)
@@ -81,6 +67,7 @@ class MainWindow(QMainWindow):
         doc_ref = db.collection("records")
         doc_ref.add(record)
     
+    # 開啟圖片
     def open_img(self):
         if self.cap:
             self.video_stop()
@@ -88,11 +75,7 @@ class MainWindow(QMainWindow):
             self.ui.CapBtn.setText('打开摄像头')
             self.cap = None
 
-        # 弹出的窗口名称：'打开图片'
-        # 默认打开的目录：'./'
-        # 只能打开.jpg与.gif结尾的图片文件
-        # file_path, _ = QFileDialog.getOpenFileName(self.ui.centralwidget, '打开图片', './', "Image files (*.jpg *.gif)")
-        file_path, _ = QFileDialog.getOpenFileName(None, '打开图片', './', "Image files (*.jpg *.jepg *.png)")
+        file_path, _ = QFileDialog.getOpenFileName(None, '開啟圖片', './', "Image files (*.jpg *.jepg *.png)")
         if not file_path:
             return
 
@@ -145,14 +128,13 @@ class MainWindow(QMainWindow):
         self.ui.label_show.setAlignment(Qt.AlignCenter)
 
     def get_video_path(self):
-        file_path, _ = QFileDialog.getOpenFileName(None, '打开视频', './', "Image files (*.avi *.mp4)")
+        file_path, _ = QFileDialog.getOpenFileName(None, '開啟影片', './', "Image files (*.avi *.mp4)")
         if not file_path:
             return None
         self.org_path = file_path
         return file_path
 
     def video_start(self):
-        # 定时器开启，每隔一段时间，读取一帧
         self.timer_camera.start(30)
         self.timer_camera.timeout.connect(self.open_frame)
 
@@ -221,7 +203,7 @@ class MainWindow(QMainWindow):
     def vedio_show(self):
         if self.is_camera_open:
             self.is_camera_open = False
-            self.ui.CapBtn.setText('打开摄像头')
+            self.ui.CapBtn.setText('開啟攝影機')
 
         video_path = self.get_video_path()
         if not video_path:
@@ -232,11 +214,11 @@ class MainWindow(QMainWindow):
     def camera_show(self):
         self.is_camera_open = not self.is_camera_open
         if self.is_camera_open:
-            self.ui.CapBtn.setText('关闭摄像头')
+            self.ui.CapBtn.setText('關閉攝影機')
             self.cap = cv2.VideoCapture(0)
             self.video_start()
         else:
-            self.ui.CapBtn.setText('打开摄像头')
+            self.ui.CapBtn.setText('開啟攝影機')
             self.ui.label_show.setText('')
             if self.cap:
                 self.cap.release()
