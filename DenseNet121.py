@@ -144,7 +144,6 @@ def create_dense_net(nb_classes, img_input, include_top, depth=40, nb_dense_bloc
         x = transition_block(nb_filter, compression=compression, weight_decay=weight_decay)(x)
         nb_filter = int(nb_filter * compression)
 
-    # 最后一个block没有transition_block
     model = dense_block(nb_layers[block_index], nb_filter, growth_rate, bottleneck=bottleneck,
                         dropout_rate=dropout_rate, weight_decay=weight_decay)
     x = model(x)
